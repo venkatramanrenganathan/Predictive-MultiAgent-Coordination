@@ -9,7 +9,7 @@
 % Emails: v.renganathan@cranfield.ac.uk
 %         sabyasachi.mondal@cranfield.ac.uk
 %
-% Date last updated: 23 January, 2025.
+% Date last updated: 24 January, 2025.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -29,7 +29,7 @@ function [weightVector] = calculateWeight(fnInput)
     for t = 1:predictionHorizon
         stateDiff = norm(iStates(1,t) - jStates(1,t));
         newStateDiff = epsilon + stateDiff;
-        weightVector(t,1) = jthTrustVector(1,t)/newStateDiff;
+        weightVector(t,1) = jthTrustVector(t,1)/newStateDiff;
     end
 
 end

@@ -9,7 +9,7 @@
 % Emails: v.renganathan@cranfield.ac.uk
 %         sabyasachi.mondal@cranfield.ac.uk
 %
-% Date last updated: 23 January, 2025.
+% Date last updated: 24 January, 2025.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -23,18 +23,22 @@ function [trustVector] = estimateTrust(fnInput)
     jthFriendOldPrediction = fnInput.previousPrediction;
 
     % Place holder for trust vector
-    trustVector = zeros(predictionHorizon-1, 1);
+    trustVector = zeros(predictionHorizon, 1);
 
     % Iterate through prediction horizon except the last step
+    % Check if old prediction at time t lies inside ball around current
+    % prediction value at time t
     for t = 2:predictionHorizon
-        maxVal = jthFriendOldPrediction(1,t) + trustRadius;
-        minVal = jthFriendOldPrediction(1,t) - trustRadius;
-        if(jthFriendPrediction(1,t-1) <= maxVal && jthFriendPrediction(1,t-1) >= minVal)
-            trustVector(t,1) = discountFactor^(t-1)*1;
+        maxVal = jthFriendPrediction(1,t-1) + trustRadius;
+        minVal = jthFriendPrediction(1,t-1) - trustRadius;
+        if(jthFriendOldPrediction(1,t) <= maxVal && jthFriendOldPrediction(1,t) >= minVal)
+            trustVector(t-1,1) = discountFactor^(t-1)*1;
         else
-            trustVector(t,1) = 0;
+            trustVector(t-1,1) = 0;
         end
 
     end
+    % Use average of all trust for last time step
+    trustVector(end,1) = mean(trustVector(1:predictionHorizon-1,1));
 
 end
