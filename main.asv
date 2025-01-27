@@ -31,8 +31,8 @@ addpath(genpath('src'));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Network Parameters
-numSteps = 200; % Number of time steps
-numAgents = 20; % Number of agents
+numSteps = 150; % Number of time steps
+numAgents = 100; % Number of agents
 
 % Generate a connected random graph with a spanning tree
 % Create a spanning tree first
@@ -74,7 +74,7 @@ simpleWeights = degMatrix \ adjMatrix;
 epsilon = 0.1; % Constant for numerical stability in weights calculation
 trustRadius = 0.5; % Trust Radius for Coordination
 discountFactor = 0.90; % Discount Factor for Trust Estimation
-predictionHorizon = 20; % Prediction Horizon
+predictionHorizon = 10; % Prediction Horizon
 
 % Placeholder to store the data for all nodes
 x = zeros(numAgents, numSteps);
@@ -95,14 +95,6 @@ for k = 2:numSteps-1
     
     % Iterate through all agents
     for i = 1:numAgents
-
-        % % Make an agent malicious
-        % maliciousIndex = 5;
-        % 
-        % if(i == maliciousIndex)
-        %     x(i, k+1:k+1+predictionHorizon-1) = x(i, k:k+predictionHorizon-1);
-        %     break;
-        % end
 
         % Identify neighbors of agent i
         iNeighbors = find(adjMatrix(i, :) > 0);

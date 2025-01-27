@@ -32,4 +32,7 @@ function [weightVector] = calculateWeight(fnInput)
         weightVector(t,1) = jthTrustVector(t,1)/newStateDiff;
     end
 
+    % Normalize the weight vector
+    weightVector = weightVector/norm(weightVector, 1);
+
 end
