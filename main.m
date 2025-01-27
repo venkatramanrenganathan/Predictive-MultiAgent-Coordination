@@ -31,39 +31,17 @@ addpath(genpath('src'));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Network Parameters
-numSteps = 200; % Number of time steps
-numAgents = 20; % Number of agents
+numSteps = 10000; % Number of time steps
+numAgents = 100; % Number of agents
 
 % Generate a connected random graph with a spanning tree
-% Create a spanning tree first
-spanningTree = graph();
-spanningTree = addnode(spanningTree, numAgents);
-for i = 2:numAgents
-    parent = randi(i-1); % Randomly connect to a previous node
-    spanningTree = addedge(spanningTree, parent, i, rand);
-end
+graphOutput = generateGraph(numAgents);
 
-% % Add additional random edges to make it a connected graph
-% p = 0.05; % Probability of adding extra edges
-% adjMatrix = adjacency(spanningTree);
-% for i = 1:numAgents
-%     for j = i+1:numAgents
-%         if rand < p && adjMatrix(i, j) == 0
-%             adjMatrix(i, j) = rand;
-%             adjMatrix(j, i) = adjMatrix(i, j);
-%         end
-%     end
-% end
-
-% Symmetric adjacency matrix
-adjMatrix = adjacency(spanningTree);
-adjMatrix = max(adjMatrix, adjMatrix');
-G = graph(adjMatrix);
-
-% Normalize the adjacency matrix to make the weight matrix stochastic
-degMatrix = diag(sum(adjMatrix, 2));
-% Simple Weight Matrix for building prediction data 
-simpleWeights = degMatrix \ adjMatrix;
+% Extract the graph output
+G = graphOutput.graph;
+adjMatrix = graphOutput.adjMatrix;
+degMatrix = graphOutput.degMatrix;
+simpleWeights = graphOutput.simpleWeights;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -71,10 +49,10 @@ simpleWeights = degMatrix \ adjMatrix;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-epsilon = 0.1; % Constant for numerical stability in weights calculation
-trustRadius = 0.5; % Trust Radius for Coordination
-discountFactor = 0.90; % Discount Factor for Trust Estimation
-predictionHorizon = 20; % Prediction Horizon
+epsilon = 1e-3; % Constant for numerical stability in weights calculation
+trustRadius = 0.25; % Trust Radius for Coordination
+discountFactor = 0.99; % Discount Factor for Trust Estimation
+predictionHorizon = 10; % Prediction Horizon
 
 % Placeholder to store the data for all nodes
 x = zeros(numAgents, numSteps);
@@ -211,7 +189,6 @@ figure;
 plot(0:numSteps-1, x(:,1:numSteps)', 'LineWidth', 1.5);
 xlabel('Time Step');
 ylabel('State Value');
-grid on;
 a = findobj(gcf, 'type', 'axes');
 h = findobj(gcf, 'type', 'line');
 set(h, 'linewidth', 3);
