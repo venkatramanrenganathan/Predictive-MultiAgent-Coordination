@@ -40,14 +40,35 @@ trustRadius = 0.25; % Trust Radius for Coordination
 discountFactor = 0.99; % Discount Factor for Trust Estimation
 predictionHorizon = 30; % Prediction Horizon
 
-% Generate a connected random graph with a spanning tree
-graphOutput = generateGraph(numAgents);
+% Flag deciding whether to generate new data or load existing data
+% dataPrepFlag = 1: Generates new network data
+% dataPrepFlag = 0: Loads existing network data
+dataPrepFlag = 1;
 
-% Extract the graph output
-G = graphOutput.graph;
-adjMatrix = graphOutput.adjMatrix;
-degMatrix = graphOutput.degMatrix;
-simpleWeights = graphOutput.simpleWeights;
+% When dataPrepFlag = 1: Generate new data for network
+if(dataPrepFlag)
+    
+    disp('Generating new data for network as dataPrepFlag = 1.');
+
+    % Generate a connected random graph with a spanning tree
+    graphOutput = generateGraph(numAgents);
+    
+    % Extract the graph output
+    G = graphOutput.graph;
+    adjMatrix = graphOutput.adjMatrix;
+    degMatrix = graphOutput.degMatrix;
+    simpleWeights = graphOutput.simpleWeights;
+
+    % Data generation finished
+    disp('Finished generating new data for network.');
+    
+    % Save the generated network data into mat file.
+    disp('Saving the generated network data.');
+    save('networkData.mat');
+else
+    disp('Loading existing data for network as dataPrepFlag = 0.');
+    load('networkData.mat');
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -172,7 +193,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Plot the network structure
-figure;
+figure1 = figure('Color',[1 1 1]);
 plot(G, 'Layout', 'force');
 title('Network Structure');
 a = findobj(gcf, 'type', 'axes');
@@ -180,9 +201,11 @@ h = findobj(gcf, 'type', 'line');
 set(h, 'linewidth', 6);
 set(a, 'linewidth', 6);
 set(a, 'FontSize', 50);
+% Convert matlab figs to tikz for pgfplots in latex document.
+matlab2tikz('figurehandle',figure1,'filename','networkPlot.tex' ,'standalone', true, 'showInfo', false);
 
 % Plot the evolution of states
-figure;
+figure2 = figure('Color',[1 1 1]);
 plot(0:numSteps-1, x(:,1:numSteps)', 'LineWidth', 1.5);
 xlabel('Time Step');
 ylabel('State Value');
@@ -191,3 +214,5 @@ h = findobj(gcf, 'type', 'line');
 set(h, 'linewidth', 3);
 set(a, 'linewidth', 3);
 set(a, 'FontSize', 50);
+% Convert matlab figs to tikz for pgfplots in latex document.
+matlab2tikz('figurehandle',figure2,'filename','statesPlot.tex' ,'standalone', true, 'showInfo', false);
