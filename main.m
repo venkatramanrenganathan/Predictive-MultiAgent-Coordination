@@ -10,7 +10,7 @@
 % Emails: v.renganathan@cranfield.ac.uk
 %         sabyasachi.mondal@cranfield.ac.uk
 %
-% Date last updated: 24 January, 2025.
+% Date last updated: 29 January, 2025.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -31,8 +31,14 @@ addpath(genpath('src'));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Network Parameters
-numSteps = 10000; % Number of time steps
-numAgents = 100; % Number of agents
+numSteps = 3000; % Number of time steps
+numAgents = 50; % Number of agents
+
+% ADC protocol parameters
+epsilon = 1e-3; % Constant for numerical stability in weights calculation
+trustRadius = 0.25; % Trust Radius for Coordination
+discountFactor = 0.99; % Discount Factor for Trust Estimation
+predictionHorizon = 30; % Prediction Horizon
 
 % Generate a connected random graph with a spanning tree
 graphOutput = generateGraph(numAgents);
@@ -49,16 +55,10 @@ simpleWeights = graphOutput.simpleWeights;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-epsilon = 1e-3; % Constant for numerical stability in weights calculation
-trustRadius = 0.25; % Trust Radius for Coordination
-discountFactor = 0.99; % Discount Factor for Trust Estimation
-predictionHorizon = 10; % Prediction Horizon
-
 % Placeholder to store the data for all nodes
 x = zeros(numAgents, numSteps);
 
 % Initialize random data for all nodes across the prediction horizon
-%x(:, 1:predictionHorizon) = randn(numAgents, predictionHorizon);
 x(:,1) = randn(numAgents, 1);
 
 % Update using simple weights till prediction horizon to build data
@@ -78,7 +78,7 @@ for k = 2:numSteps-1
         % maliciousIndex = 5;
         % 
         % if(i == maliciousIndex)
-        %     x(i, k+1:k+1+predictionHorizon-1) = x(i, k:k+predictionHorizon-1);
+        %     x(i, k+1:k+1+predictionHorizon-1) = randn*x(i, k:k+predictionHorizon-1);
         %     break;
         % end
 
@@ -115,9 +115,6 @@ for k = 2:numSteps-1
         % Iterate through all neighbors of agent i
         for j = 1:iNeighborsCount
 
-            % % Get the index of neighbor j of agent i
-            % jthNeighborIndex = iNeighbors(1,j);
-
             % Get prediction data of neighbor j of agent i at time k
             jthFriendPrediction = iNeighborsPredictions(j, :);
 
@@ -139,7 +136,7 @@ for k = 2:numSteps-1
             iNeighborsCommitments(j,k) = sum(iNeighborsCommitments(j,1:k),2)/k;
             
             % Prepare a struct input for weight calculation
-            weightCalculationInput.timeStep = k;
+            weightCalculationInput.commit = iNeighborsCommitments(j,k);
             weightCalculationInput.epsilon = epsilon;
             weightCalculationInput.iStates = iPredictedStates;
             weightCalculationInput.jStates = jthFriendPrediction;

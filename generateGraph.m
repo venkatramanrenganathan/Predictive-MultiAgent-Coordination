@@ -9,7 +9,7 @@
 % Emails: v.renganathan@cranfield.ac.uk
 %         sabyasachi.mondal@cranfield.ac.uk
 %
-% Date last updated: 27 January, 2025.
+% Date last updated: 29 January, 2025.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -23,17 +23,17 @@ function [graphOutput] = generateGraph(numAgents)
         spanningTree = addedge(spanningTree, parent, i, rand);
     end
     
-    % % Add additional random edges to make it a connected graph
-    % p = 0.05; % Probability of adding extra edges
-    % adjMatrix = adjacency(spanningTree);
-    % for i = 1:numAgents
-    %     for j = i+1:numAgents
-    %         if rand < p && adjMatrix(i, j) == 0
-    %             adjMatrix(i, j) = rand;
-    %             adjMatrix(j, i) = adjMatrix(i, j);
-    %         end
-    %     end
-    % end
+    % Add additional random edges to make it a connected graph
+    p = 0.5; % Probability of adding extra edges
+    adjMatrix = adjacency(spanningTree);
+    for i = 1:numAgents
+        for j = i+1:numAgents
+            if rand < p && adjMatrix(i, j) == 0
+                adjMatrix(i, j) = rand;
+                adjMatrix(j, i) = adjMatrix(i, j);
+            end
+        end
+    end
     
     % Symmetric adjacency matrix
     adjMatrix = adjacency(spanningTree);
