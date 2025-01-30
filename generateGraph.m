@@ -13,42 +13,63 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [graphOutput] = generateGraph(numAgents)
+function graphOutput = generateGraph(N)
+    % Generate an Erdos-Renyi graph and ensure it has a spanning tree
+    % Inputs:
+    %   N - Number of nodes
+    
+    if N < 2
+        error('Number of nodes N must be at least 2.');
+    end
 
-    % Create a spanning tree first
-    spanningTree = graph();
-    spanningTree = addnode(spanningTree, numAgents);
-    for i = 2:numAgents
-        parent = randi(i-1); % Randomly connect to a previous node
-        spanningTree = addedge(spanningTree, parent, i, rand);
-    end
+    % Set probability of edge creation (0 < p <= 1)
+    p = 0.1;
     
-    % Add additional random edges to make it a connected graph
-    p = 0.5; % Probability of adding extra edges
-    adjMatrix = adjacency(spanningTree);
-    for i = 1:numAgents
-        for j = i+1:numAgents
-            if rand < p && adjMatrix(i, j) == 0
-                adjMatrix(i, j) = rand;
-                adjMatrix(j, i) = adjMatrix(i, j);
-            end
+    % Step 1: Generate a random Erdős–Rényi graph
+    A = rand(N, N) < p; % Generate random adjacency matrix
+    A = triu(A, 1); % Keep upper triangle to avoid duplicate edges
+    A = A + A'; % Make it symmetric (undirected graph)
+    
+    % Step 2: Ensure the graph is connected (has a spanning tree)
+    % Check if the graph is connected using BFS or DFS
+    G = graph(A);
+    while ~isConnected(G)
+        % Find connected components
+        bins = conncomp(G);
+        unique_bins = unique(bins);
+        
+        % Connect different components by adding edges
+        for i = 1:length(unique_bins)-1
+            % Find one node in the current component and one in the next
+            node1 = find(bins == unique_bins(i), 1);
+            node2 = find(bins == unique_bins(i+1), 1);
+            
+            % Add an edge between these nodes
+            A(node1, node2) = 1;
+            A(node2, node1) = 1;
         end
+        
+        % Update graph
+        G = graph(A);
     end
     
-    % Symmetric adjacency matrix
-    adjMatrix = adjacency(spanningTree);
-    adjMatrix = max(adjMatrix, adjMatrix');
-    G = graph(adjMatrix);
-    
-    % Normalize the adjacency matrix to make the weight matrix stochastic
-    degMatrix = diag(sum(adjMatrix, 2));
+    % Step 3: Compute degree and Laplacian matrices
+    D = diag(sum(A, 2)); % Degree matrix
+    L = D - A; % Laplacian matrix
     % Simple Weight Matrix for building prediction data 
-    simpleWeights = degMatrix \ adjMatrix;
+    simpleWeights = D \ A;
 
     % Return the following outputStruct
     graphOutput.graph = G;
-    graphOutput.adjMatrix = adjMatrix;
-    graphOutput.degMatrix = degMatrix;
+    graphOutput.adjMatrix = A;
+    graphOutput.degMatrix = D;
     graphOutput.simpleWeights = simpleWeights;
+    graphOutput.x0 = randn(N, 1);
+    
+end
 
+% Helper function to check graph connectivity
+function connected = isConnected(G)
+    bins = conncomp(G); % Get connected components
+    connected = (max(bins) == 1); % Only one component means connected
 end

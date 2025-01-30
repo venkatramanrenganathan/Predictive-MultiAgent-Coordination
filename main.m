@@ -31,42 +31,39 @@ addpath(genpath('src'));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Network Parameters
-numSteps = 3000; % Number of time steps
-numAgents = 50; % Number of agents
+numSteps = 500; % Number of time steps
+numAgents = 20; % Number of agents
 
 % ADC protocol parameters
 epsilon = 1e-3; % Constant for numerical stability in weights calculation
-trustRadius = 0.25; % Trust Radius for Coordination
-discountFactor = 0.99; % Discount Factor for Trust Estimation
-predictionHorizon = 30; % Prediction Horizon
+trustRadius = 0.75; % Trust Radius for Coordination
+discountFactor = 0.80; % Discount Factor for Trust Estimation
+predictionHorizon = 20; % Prediction Horizon
 
 % Flag deciding whether to generate new data or load existing data
 % dataPrepFlag = 1: Generates new network data
 % dataPrepFlag = 0: Loads existing network data
-dataPrepFlag = 1;
+dataPrepFlag = 0;
 
 % When dataPrepFlag = 1: Generate new data for network
 if(dataPrepFlag)
     
-    disp('Generating new data for network as dataPrepFlag = 1.');
-
+    disp('Generating new network structure');
     % Generate a connected random graph with a spanning tree
     graphOutput = generateGraph(numAgents);
     
     % Extract the graph output
-    G = graphOutput.graph;
+    x0 = graphOutput.x0;
+    G = graphOutput.graph;    
     adjMatrix = graphOutput.adjMatrix;
     degMatrix = graphOutput.degMatrix;
     simpleWeights = graphOutput.simpleWeights;
-
-    % Data generation finished
-    disp('Finished generating new data for network.');
     
     % Save the generated network data into mat file.
-    disp('Saving the generated network data.');
+    disp('Saving the generated network data');
     save('networkData.mat');
 else
-    disp('Loading existing data for network as dataPrepFlag = 0.');
+    disp('Loading existing data for network');
     load('networkData.mat');
 end
 
@@ -80,7 +77,7 @@ end
 x = zeros(numAgents, numSteps);
 
 % Initialize random data for all nodes across the prediction horizon
-x(:,1) = randn(numAgents, 1);
+x(:,1) = x0;
 
 % Update using simple weights till prediction horizon to build data
 for k = 2:predictionHorizon-1
@@ -88,6 +85,7 @@ for k = 2:predictionHorizon-1
     x(:, k) = simpleWeights * x(:, k-1); 
 end
 
+disp('Starting ADC Protocol Iteration');
 
 % ADC Protocol Iteration
 for k = 2:numSteps-1
@@ -192,6 +190,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+disp('Plotting results');
+
 % Plot the network structure
 figure1 = figure('Color',[1 1 1]);
 plot(G, 'Layout', 'force');
@@ -202,7 +202,7 @@ set(h, 'linewidth', 6);
 set(a, 'linewidth', 6);
 set(a, 'FontSize', 50);
 % Convert matlab figs to tikz for pgfplots in latex document.
-matlab2tikz('figurehandle',figure1,'filename','networkPlot.tex' ,'standalone', true, 'showInfo', false);
+% matlab2tikz('figurehandle',figure1,'filename','networkPlot.tex' ,'standalone', true, 'showInfo', false);
 
 % Plot the evolution of states
 figure2 = figure('Color',[1 1 1]);
