@@ -64,7 +64,7 @@ function graphOutput = generateGraph(N)
     graphOutput.adjMatrix = A;
     graphOutput.degMatrix = D;
     graphOutput.simpleWeights = simpleWeights;
-    graphOutput.x0 = randn(N, 1);
+    graphOutput.x0 = N*randn(N, 1);
     
 end
 

@@ -17,9 +17,6 @@ function [weightVector] = calculateWeight(fnInput)
 
     % Extract the input
     commit = fnInput.commit;
-    iStates = fnInput.iStates;
-    jStates = fnInput.jStates;
-    epsilon = fnInput.epsilon;
     jthTrustVector = fnInput.jthTrustVector;
     predictionHorizon = fnInput.predictionHorizon;
 
@@ -28,8 +25,7 @@ function [weightVector] = calculateWeight(fnInput)
 
     % Iterate through prediction horizon to compute the weight
     for t = 1:predictionHorizon
-        stateDiff = norm(iStates(1,t) - (commit)*jStates(1,t));
-        weightVector(t,1) = jthTrustVector(t,1)/(epsilon + stateDiff);
+        weightVector(t,1) = commit*jthTrustVector(t,1);
     end
 
     % Normalize the weight vector

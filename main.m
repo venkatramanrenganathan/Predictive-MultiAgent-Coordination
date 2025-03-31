@@ -10,7 +10,7 @@
 % Emails: v.renganathan@cranfield.ac.uk
 %         sabyasachi.mondal@cranfield.ac.uk
 %
-% Date last updated: 29 January, 2025.
+% Date last updated: 31 March, 2025.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -31,14 +31,13 @@ addpath(genpath('src'));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Network Parameters
-numSteps = 500; % Number of time steps
-numAgents = 20; % Number of agents
+numSteps = 200; % Number of time steps
+numAgents = 100; % Number of agents
 
 % ADC protocol parameters
-epsilon = 1e-3; % Constant for numerical stability in weights calculation
-trustRadius = 0.75; % Trust Radius for Coordination
-discountFactor = 0.80; % Discount Factor for Trust Estimation
-predictionHorizon = 20; % Prediction Horizon
+trustRadius = 5; % Trust Radius for Coordination
+discountFactor = 0.40; % Discount Factor for Trust Estimation
+predictionHorizon = 25; % Prediction Horizon
 
 % Flag deciding whether to generate new data or load existing data
 % dataPrepFlag = 1: Generates new network data
@@ -60,8 +59,8 @@ if(dataPrepFlag)
     simpleWeights = graphOutput.simpleWeights;
     
     % Save the generated network data into mat file.
-    disp('Saving the generated network data');
     save('networkData.mat');
+    disp('Finished saving the generated network data');
 else
     disp('Loading existing data for network');
     load('networkData.mat');
@@ -156,21 +155,14 @@ for k = 2:numSteps-1
             
             % Prepare a struct input for weight calculation
             weightCalculationInput.commit = iNeighborsCommitments(j,k);
-            weightCalculationInput.epsilon = epsilon;
-            weightCalculationInput.iStates = iPredictedStates;
-            weightCalculationInput.jStates = jthFriendPrediction;
             weightCalculationInput.jthTrustVector = jthTrustVector;
             weightCalculationInput.predictionHorizon = predictionHorizon;
             
             % Calculate the weight to be associated for jth neighbor
             adcProtocolWeights(:,j) = calculateWeight(weightCalculationInput);
 
-            % Form the committed states of jth neighbof agent i
-            % jthFriendCommittedStates = iNeighborsCommitments(j,k) * jthFriendPrediction;
-            jthFriendCommittedStates = jthFriendPrediction;
-
             % Form difference of opinion of agent i w.r.t neighbor j
-            jthFriendOpinionDifference = jthFriendCommittedStates' - iPredictedStates';
+            jthFriendOpinionDifference = jthFriendPrediction' - iPredictedStates';
 
             % Compute jth neighbor's contribution for agent i's update
             neighborsContribution(:,j) = adcProtocolWeights(:,j).*jthFriendOpinionDifference;
@@ -194,8 +186,7 @@ disp('Plotting results');
 
 % Plot the network structure
 figure1 = figure('Color',[1 1 1]);
-plot(G, 'Layout', 'force');
-title('Network Structure');
+plot(G, 'Layout', 'force', 'NodeColor','k','EdgeAlpha',0.3);
 a = findobj(gcf, 'type', 'axes');
 h = findobj(gcf, 'type', 'line');
 set(h, 'linewidth', 6);
@@ -207,8 +198,8 @@ set(a, 'FontSize', 50);
 % Plot the evolution of states
 figure2 = figure('Color',[1 1 1]);
 plot(0:numSteps-1, x(:,1:numSteps)', 'LineWidth', 1.5);
-xlabel('Time Step');
-ylabel('State Value');
+xlabel('Time');
+ylabel('States');
 a = findobj(gcf, 'type', 'axes');
 h = findobj(gcf, 'type', 'line');
 set(h, 'linewidth', 3);
