@@ -92,13 +92,13 @@ for k = 2:numSteps-1
     % Iterate through all agents
     for i = 1:numAgents
 
-        % % Make an agent malicious
-        % maliciousIndex = 5;
-        % 
-        % if(i == maliciousIndex)
-        %     x(i, k+1:k+1+predictionHorizon-1) = randn*x(i, k:k+predictionHorizon-1);
-        %     break;
-        % end
+        % Make a random agent malicious
+        maliciousIndex = randperm(numAgents, 1);
+
+        if(i == maliciousIndex)
+            x(i, k+1:k+1+predictionHorizon-1) = 5*randn*x(i, k:k+predictionHorizon-1);
+            continue;
+        end
 
         % Identify neighbors of agent i
         iNeighbors = find(adjMatrix(i, :) > 0);
@@ -186,12 +186,13 @@ disp('Plotting results');
 
 % Plot the network structure
 figure1 = figure('Color',[1 1 1]);
-plot(G, 'Layout', 'force', 'NodeColor','k','EdgeAlpha',0.3);
+plot(G, 'Layout', 'force', 'NodeColor','k','EdgeAlpha',0.99, 'NodeCData', degree(G));
+colorbar;
 a = findobj(gcf, 'type', 'axes');
 h = findobj(gcf, 'type', 'line');
-set(h, 'linewidth', 6);
+set(h, 'linewidth', 20);
 set(a, 'linewidth', 6);
-set(a, 'FontSize', 50);
+set(a, 'FontSize', 75);
 % Convert matlab figs to tikz for pgfplots in latex document.
 % matlab2tikz('figurehandle',figure1,'filename','networkPlot.tex' ,'standalone', true, 'showInfo', false);
 
