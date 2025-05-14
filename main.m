@@ -31,12 +31,12 @@ addpath(genpath('src'));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Network Parameters
-numSteps = 200; % Number of time steps
-numAgents = 100; % Number of agents
+numSteps = 500; % Number of time steps
+numAgents = 30; % Number of agents
 
 % ADC protocol parameters
-trustRadius = 5; % Trust Radius for Coordination
-discountFactor = 0.40; % Discount Factor for Trust Estimation
+trustRadius = 3; % Trust Radius for Coordination
+discountFactor = 0.99; % Discount Factor for Trust Estimation
 predictionHorizon = 25; % Prediction Horizon
 
 % Flag deciding whether to generate new data or load existing data
@@ -84,20 +84,40 @@ for k = 2:predictionHorizon-1
     x(:, k) = simpleWeights * x(:, k-1); 
 end
 
-disp('Starting ADC Protocol Iteration');
+% Choose similation scenario
+% simScenario: 1-Single malicious agent, 2-multiple malicious agents
+simScenario = 2;
+
+% Set the simulation scenario
+if(simScenario == 1)
+    % Make a random agent to become malicious throughout all time steps
+    maliciousIndex = randperm(numAgents, 1);
+else
+    % Set number of malicious agents
+    numMaliciousAgents = ceil(numAgents/4);
+    % Choose malicious agent indices
+    maliciousIndices = randperm(numAgents, numMaliciousAgents);
+end
 
 % ADC Protocol Iteration
+disp('Starting ADC Protocol Iteration');
 for k = 2:numSteps-1
     
     % Iterate through all agents
     for i = 1:numAgents
 
-        % Make a random agent malicious
-        maliciousIndex = randperm(numAgents, 1);
-
-        if(i == maliciousIndex)
-            x(i, k+1:k+1+predictionHorizon-1) = 5*randn*x(i, k:k+predictionHorizon-1);
-            continue;
+        if(simScenario == 1)
+            % Update single malicious agent
+            if(i == maliciousIndex)
+                x(i, k+1:k+1+predictionHorizon-1) = 0.1 + randn*x(i, k:k+predictionHorizon-1);
+                continue;
+            end 
+        else
+            % Update multiple malicious agents (one per every for loop iteration)
+            if(any(maliciousIndices(:) == i))
+                x(i, k+1:k+1+predictionHorizon-1) = 0.1 + randn*x(i, k:k+predictionHorizon-1);
+                continue;
+            end 
         end
 
         % Identify neighbors of agent i
@@ -186,8 +206,9 @@ disp('Plotting results');
 
 % Plot the network structure
 figure1 = figure('Color',[1 1 1]);
-plot(G, 'Layout', 'force', 'NodeColor','k','EdgeAlpha',0.99, 'NodeCData', degree(G));
-colorbar;
+nwPlot = plot(G, 'Layout', 'force', 'NodeColor','k','EdgeAlpha',0.99, 'NodeCData', degree(G));
+nwPlot.NodeFontSize = 40;
+nwPlot.MarkerSize = 20;
 a = findobj(gcf, 'type', 'axes');
 h = findobj(gcf, 'type', 'line');
 set(h, 'linewidth', 20);
@@ -199,6 +220,7 @@ set(a, 'FontSize', 75);
 % Plot the evolution of states
 figure2 = figure('Color',[1 1 1]);
 plot(0:numSteps-1, x(:,1:numSteps)', 'LineWidth', 1.5);
+axis tight;
 xlabel('Time');
 ylabel('States');
 a = findobj(gcf, 'type', 'axes');
