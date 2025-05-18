@@ -31,18 +31,18 @@ addpath(genpath('src'));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Network Parameters
-numSteps = 500; % Number of time steps
+numSteps = 1000; % Number of time steps
 numAgents = 20; % Number of agents
 
 % ADC protocol parameters
-trustRadius = 3; % Trust Radius for Coordination - 3
+trustRadius = 0.1; % Trust Radius for Coordination - 3
 discountFactor = 0.99; % Discount Factor for Trust Estimation
 predictionHorizon = 15; % Prediction Horizon
 
 % Flag deciding whether to generate new data or load existing data
 % dataPrepFlag = 1: Generates new network data
 % dataPrepFlag = 0: Loads existing network data
-dataPrepFlag = 0;
+dataPrepFlag = 1;
 
 % When dataPrepFlag = 1: Generate new data for network
 if(dataPrepFlag)
@@ -96,7 +96,7 @@ if(simScenario == 1)
     % Choose a uncompromised node for recording its neighbors trusts for plotting
     while 1
         goodIndex = randperm(numAgents, 1);
-        % If agent is good and has malicious neighbor, then break
+        % If agent is good and has malicious neighbor
         if(goodIndex ~= maliciousIndex && adjMatrix(goodIndex, maliciousIndex) == 1)
             break
         end
@@ -109,8 +109,7 @@ else
     % Choose a uncompromised node for recording its neighbors trusts for plotting
     while 1
         goodIndex = randperm(numAgents, 1);
-        % If agent is good and has malicious neighbor, then break
-        if(goodIndex ~= any(maliciousIndices) && any(adjMatrix(goodIndex, maliciousIndices) == 1))
+        if(goodIndex ~= any(maliciousIndices) && adjMatrix(goodIndex, randperm(maliciousIndices,1)) == 1)
             break
         end
     end
@@ -281,8 +280,8 @@ set(gca,'fontweight','bold');
 matlab2tikz('figurehandle',figure2,'filename','statesPlot.tex' ,'standalone', true, 'showInfo', false);
 
 % Plot the trusts of neighbors of good agent 
-figure3 = figure('Color',[1 1 1]);
-plot(0:numSteps-2, trustRecordGoodNeighbors', 'LineWidth', 1.5, 'MarkerSize',10, 'Marker','+', 'LineStyle','--', 'Color',"r");
+figure2 = figure('Color',[1 1 1]);
+plot(0:numSteps-2, trustRecordGoodNeighbors, 'LineWidth', 1.5);
 axis tight;
 xlabel('Time', 'FontWeight', 'bold');
 ylabel('Trusts', 'FontWeight', 'bold');
@@ -293,4 +292,4 @@ set(a, 'linewidth', 5);
 set(a, 'FontSize', 80);
 set(gca,'fontweight','bold');
 % Convert matlab figs to tikz for pgfplots in latex document.
-matlab2tikz('figurehandle',figure3,'filename','trustPlot.tex' ,'standalone', true, 'showInfo', false);
+matlab2tikz('figurehandle',figure2,'filename','trustPlot.tex' ,'standalone', true, 'showInfo', false);
