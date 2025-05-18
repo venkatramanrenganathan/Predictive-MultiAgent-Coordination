@@ -19,9 +19,9 @@
 clear; close all; clc;
 
 % set properties for plotting
-set(groot,'defaultAxesTickLabelInterpreter','latex');  
-set(groot,'defaulttextinterpreter','latex');
-set(groot,'defaultLegendInterpreter','latex');
+%set(groot,'defaultAxesTickLabelInterpreter','latex');  
+%set(groot,'defaulttextinterpreter','latex');
+%set(groot,'defaultLegendInterpreter','latex');
 addpath(genpath('src'));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -32,10 +32,10 @@ addpath(genpath('src'));
 
 % Network Parameters
 numSteps = 500; % Number of time steps
-numAgents = 30; % Number of agents
+numAgents = 20; % Number of agents
 
 % ADC protocol parameters
-trustRadius = 3; % Trust Radius for Coordination
+trustRadius = 3; % Trust Radius for Coordination - 3
 discountFactor = 0.99; % Discount Factor for Trust Estimation
 predictionHorizon = 25; % Prediction Horizon
 
@@ -86,7 +86,8 @@ end
 
 % Choose similation scenario
 % simScenario: 1-Single malicious agent, 2-multiple malicious agents
-simScenario = 2;
+% simScenario: 3- multiple malicious leaders
+simScenario = 3;
 
 % Set the simulation scenario
 if(simScenario == 1)
@@ -99,6 +100,15 @@ else
     maliciousIndices = randperm(numAgents, numMaliciousAgents);
 end
 
+% Choose the adversarial attack time interval
+if(simScenario < 3)
+    attackStart = 150;
+    attackEnd = 350;
+else
+    attackStart = 10;
+    attackEnd = 100;
+end
+
 % ADC Protocol Iteration
 disp('Starting ADC Protocol Iteration');
 for k = 2:numSteps-1
@@ -106,18 +116,28 @@ for k = 2:numSteps-1
     % Iterate through all agents
     for i = 1:numAgents
 
-        if(simScenario == 1)
-            % Update single malicious agent
-            if(i == maliciousIndex)
-                x(i, k+1:k+1+predictionHorizon-1) = 0.1 + randn*x(i, k:k+predictionHorizon-1);
-                continue;
-            end 
-        else
-            % Update multiple malicious agents (one per every for loop iteration)
-            if(any(maliciousIndices(:) == i))
-                x(i, k+1:k+1+predictionHorizon-1) = 0.1 + randn*x(i, k:k+predictionHorizon-1);
-                continue;
-            end 
+        % Simulate the attack only during the attack duration
+        if(k >= attackStart && k <= attackEnd)
+            if(simScenario == 1)
+                % Update single malicious agent
+                if(i == maliciousIndex)
+                    x(i, k+1:k+1+predictionHorizon-1) = 0.2 + randn*x(i, k:k+predictionHorizon-1);
+                    continue;
+                end 
+            elseif(simScenario == 2)
+                % Update multiple malicious agents (one per every for loop iteration)
+                if(any(maliciousIndices(:) == i))
+                    x(i, k+1:k+1+predictionHorizon-1) = 0.2 + randn*x(i, k:k+predictionHorizon-1);
+                    continue;
+                end 
+            else
+                % Update leader malicious agent (one per every for loop iteration)
+                if(any(maliciousIndices(:) == i))
+                    x(i, k+1:k+1+predictionHorizon-1) = x(i, k:k+predictionHorizon-1);
+                    continue;
+                end 
+            end
+
         end
 
         % Identify neighbors of agent i
@@ -221,12 +241,15 @@ set(a, 'FontSize', 75);
 figure2 = figure('Color',[1 1 1]);
 plot(0:numSteps-1, x(:,1:numSteps)', 'LineWidth', 1.5);
 axis tight;
-xlabel('Time');
-ylabel('States');
+xlabel('Time', 'FontWeight', 'bold');
+ylabel('States', 'FontWeight', 'bold');
 a = findobj(gcf, 'type', 'axes');
 h = findobj(gcf, 'type', 'line');
-set(h, 'linewidth', 3);
-set(a, 'linewidth', 3);
-set(a, 'FontSize', 50);
+set(h, 'linewidth', 5);
+set(a, 'linewidth', 5);
+set(a, 'FontSize', 80);
+set(gca,'fontweight','bold');
 % Convert matlab figs to tikz for pgfplots in latex document.
 matlab2tikz('figurehandle',figure2,'filename','statesPlot.tex' ,'standalone', true, 'showInfo', false);
+
+% Plot the trusts of neighbors of some agent i
