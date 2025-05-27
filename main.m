@@ -10,7 +10,7 @@
 % Emails: v.renganathan@cranfield.ac.uk
 %         sabyasachi.mondal@cranfield.ac.uk
 %
-% Date last updated: 31 March, 2025.
+% Date last updated: 26 May, 2025.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -116,13 +116,16 @@ else
     end
 end
 
-% Identify neighbors of agent atgoodIndex
-goodNodeNeighborsCount = size(find(adjMatrix(goodIndex, :) > 0), 2);
+% % Identify neighbors of agent atgood Index
+% goodNodeNeighborsCount = size(find(adjMatrix(goodIndex, :) > 0), 2);
+% 
+% % Placeholder for recording the trusts of goodNodeNeighbors
+% trustRecord = zeros(goodNodeNeighborsCount, numSteps-1);
 
-% Placeholder for recording the trusts of goodNodeNeighbors
-trustRecordGoodNeighbors = zeros(goodNodeNeighborsCount, numSteps-1);
+% Set flag for recording trust
+trustRecord = 1;
 
-% Choose the adversarial attack time interval
+% Choose the attack time interval
 if(simScenario < 3)
     attackStart = 150;
     attackEnd = 350;
@@ -213,8 +216,9 @@ for k = 2:numSteps-1
 
             % When for loop runs for selected good index node, record its trust
             % computations for all neighbors using a placeholder
-            if(i == goodIndex)
-                trustRecordGoodNeighbors(j,k) = mean(jthTrustVector);
+            if(trustRecord == 1 && any(jthTrustVector > 0) && k >= attackStart && k <= attackEnd)
+                plotNeighborTrust = jthTrustVector;
+                trustRecord = 0;
             end
 
             % Store average trust of jth neighbor for commitment calculation
@@ -282,10 +286,11 @@ matlab2tikz('figurehandle',figure2,'filename','statesPlot.tex' ,'standalone', tr
 
 % Plot the trusts of neighbors of good agent 
 figure3 = figure('Color',[1 1 1]);
-plot(0:numSteps-2, trustRecordGoodNeighbors', 'LineWidth', 1.5, 'MarkerSize',10, 'Marker','+', 'LineStyle','--', 'Color',"r");
-axis tight;
-xlabel('Time', 'FontWeight', 'bold');
-ylabel('Trusts', 'FontWeight', 'bold');
+plot(0:predictionHorizon-2, plotNeighborTrust(1:end-1, :), 'LineWidth', 1.5, 'MarkerSize',20, 'Marker','+', 'Color',"b");
+xlabel('Prediction Horizon', 'FontWeight', 'bold');
+ylabel('Trust', 'FontWeight', 'bold');
+xlim([0, predictionHorizon-2]);
+ylim([0.75,0.99]);
 a = findobj(gcf, 'type', 'axes');
 h = findobj(gcf, 'type', 'line');
 set(h, 'linewidth', 5);
