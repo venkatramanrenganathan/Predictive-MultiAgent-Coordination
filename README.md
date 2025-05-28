@@ -5,7 +5,7 @@
 
  ![anticipation](https://github.com/venkatramanrenganathan/Predictive-MultiAgent-Coordination/blob/main/anticipation.png)
 
- # Dependencies
+## Dependencies
 - Matlab
 
 ## Steps to Run the Code 
