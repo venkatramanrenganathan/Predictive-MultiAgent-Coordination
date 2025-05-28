@@ -3,6 +3,8 @@
 
  **Associated Paper:** Venkatraman Renganathan, Sabyasachi Mondal, Antonios Tsourdos, `Predictive and Trust Based Multi-Agent Coordination`, Submitted to the Special Issue on Swarm Robotics, Scientific Reports, Nature, 2025.
 
+ ![covariance_steering](https://github.com/venkatramanrenganathan/Covariance-Steering-With-Optimal-DR-Risk-Allocation/blob/main/Figures/polyspaceDRIRA2Dtraj.png)
+
  # Dependencies
 - Matlab
 
