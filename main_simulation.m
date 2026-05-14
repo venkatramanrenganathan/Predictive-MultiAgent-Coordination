@@ -336,7 +336,7 @@ fprintf('Tube bound = %.6f\n', tubeBound);
 %% Plotting Results
 
 % Set the plotting parameters
-fontSize = 30;
+fontSize = 40;
 lineWidth = 5;
 
 % Figure 1 - Predictive vs Standard Protocol Disagreement Comparison
