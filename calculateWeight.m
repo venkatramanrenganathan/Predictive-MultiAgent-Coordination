@@ -25,7 +25,7 @@ function [weightVector] = calculateWeight(fnInput)
 
     % Iterate through prediction horizon to compute the weight
     for t = 1:predictionHorizon
-        weightVector(t,1) = commit*jthTrustVector(t,1);
+        weightVector(t,1) = commit * jthTrustVector(t,1);
     end
 
     % Normalize the weight vector

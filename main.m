@@ -10,7 +10,7 @@
 % Emails: v.renganathan@cranfield.ac.uk
 %         sabyasachi.mondal@cranfield.ac.uk
 %
-% Date last updated: 26 May, 2025.
+% Date last updated: October 06, 2025.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -85,14 +85,15 @@ for k = 2:predictionHorizon-1
 end
 
 % Choose similation scenario
-% simScenario: 1-Single malicious agent, 2-multiple malicious agents
-% simScenario: 3- multiple malicious leaders
-simScenario = 2;
+% simScenario = 1 - Single malicious agent, 
+% simScenario = 2 - multiple malicious agents
+% simScenario = 3 - multiple malicious leaders
+simScenario = 1;
 
 % Set the simulation scenario
 if(simScenario == 1)
     % Make a random agent to become malicious throughout all time steps
-    maliciousIndex = randperm(numAgents, 1);
+    maliciousIndex = 5; % randperm(numAgents, 1);
     % Choose a uncompromised node for recording its neighbors trusts for plotting
     while 1
         goodIndex = randperm(numAgents, 1);
@@ -127,11 +128,26 @@ trustRecord = 1;
 
 % Choose the attack time interval
 if(simScenario < 3)
-    attackStart = 150;
-    attackEnd = 350;
+    attackStart = 15;
+    attackEnd = 100;
 else
     attackStart = 10;
     attackEnd = 100;
+end
+
+% Placeholder to store the commitment data of neighbors over time
+agentNeighborsCommitments = cell(numAgents, 1);
+
+% Prepare for storing the neighbor's commitment data 
+for i = 1:numAgents
+    % Identify neighbors of agent i
+    iNeighbors = find(adjMatrix(i, :) > 0);
+
+    % Count the number of neighbors of agent i
+    iNeighborsCount = size(iNeighbors, 2);
+
+    % Initialise the neighbor's commitment data for each agent
+    agentNeighborsCommitments{i} = zeros(iNeighborsCount, numSteps);
 end
 
 % ADC Protocol Iteration
@@ -146,13 +162,14 @@ for k = 2:numSteps-1
             if(simScenario == 1)
                 % Update single malicious agent
                 if(i == maliciousIndex)
-                    x(i, k+1:k+1+predictionHorizon-1) = 0.2 + randn*x(i, k:k+predictionHorizon-1);
+                    x(i, k+1:k+1+predictionHorizon-1) = 1 + randn*x(i, k:k+predictionHorizon-1);
+                    % x(i, k+1:k+1+predictionHorizon-1) = -0.1 + x(i, k:k+predictionHorizon-1);
                     continue;
                 end 
             elseif(simScenario == 2)
                 % Update multiple malicious agents (one per every for loop iteration)
                 if(any(maliciousIndices(:) == i))
-                    x(i, k+1:k+1+predictionHorizon-1) = 0.2 + randn*x(i, k:k+predictionHorizon-1);
+                    x(i, k+1:k+1+predictionHorizon-1) = 0.1 + randn*x(i, k:k+predictionHorizon-1);
                     continue;
                 end 
             else
@@ -168,7 +185,7 @@ for k = 2:numSteps-1
         % Identify neighbors of agent i
         iNeighbors = find(adjMatrix(i, :) > 0);
 
-        % Count the number of agent i
+        % Count the number of neighbors of agent i
         iNeighborsCount = size(iNeighbors, 2);
 
         % Extract state values of agent i
@@ -208,11 +225,16 @@ for k = 2:numSteps-1
             trustEstimationInput.trustRadius = trustRadius;
             trustEstimationInput.discountFactor = discountFactor;
             trustEstimationInput.predictionHorizon = predictionHorizon;
+            trustEstimationInput.iPredictedStates = iPredictedStates;
             trustEstimationInput.currentPrediction = jthFriendPrediction;
             trustEstimationInput.previousPrediction = jthFriendOldPrediction;
 
             % Estimate trust of jth neighbor at time k via their prediction
             jthTrustVector = estimateTrust(trustEstimationInput);
+
+            % if((i == 10 || i == 20) && (iNeighbors(j) == maliciousIndex))
+            %     jthTrustVector
+            % end
 
             % When for loop runs for selected good index node, record its trust
             % computations for all neighbors using a placeholder
@@ -223,15 +245,24 @@ for k = 2:numSteps-1
 
             % Store average trust of jth neighbor for commitment calculation
             iNeighborsCommitments(j,k) = mean(jthTrustVector); 
-            iNeighborsCommitments(j,k) = sum(iNeighborsCommitments(j,1:k),2)/k;
+            if(k == 1)
+                agentNeighborsCommitments{i}(j,k) = iNeighborsCommitments(j,k);
+            else
+                agentNeighborsCommitments{i}(j,k) = iNeighborsCommitments(j,k) + sum(iNeighborsCommitments(j,1:k-1),2); 
+            end
             
             % Prepare a struct input for weight calculation
-            weightCalculationInput.commit = iNeighborsCommitments(j,k);
+            weightCalculationInput.commit = agentNeighborsCommitments{i}(j,k);
             weightCalculationInput.jthTrustVector = jthTrustVector;
             weightCalculationInput.predictionHorizon = predictionHorizon;
             
             % Calculate the weight to be associated for jth neighbor
             adcProtocolWeights(:,j) = calculateWeight(weightCalculationInput);
+
+            % % Deliberately make 0 weight for mal neighbors
+            % if (iNeighbors(j) == maliciousIndex)
+            %     adcProtocolWeights(:,j) = zeros(predictionHorizon, 1);
+            % end
 
             % Form difference of opinion of agent i w.r.t neighbor j
             jthFriendOpinionDifference = jthFriendPrediction' - iPredictedStates';
@@ -286,11 +317,10 @@ matlab2tikz('figurehandle',figure2,'filename','statesPlot.tex' ,'standalone', tr
 
 % Plot the trusts of neighbors of good agent 
 figure3 = figure('Color',[1 1 1]);
-plot(0:predictionHorizon-2, plotNeighborTrust(1:end-1, :), 'LineWidth', 1.5, 'MarkerSize',20, 'Marker','+', 'Color',"b");
-xlabel('Prediction Horizon', 'FontWeight', 'bold');
-ylabel('Trust', 'FontWeight', 'bold');
-xlim([0, predictionHorizon-2]);
-ylim([0.75,0.99]);
+plot(0:numSteps-1, agentNeighborsCommitments{2}(5,:), 'LineWidth', 1.5, 'MarkerSize',20, 'Marker','+', 'Color',"b");
+xlabel('Time', 'FontWeight', 'bold');
+ylabel('Commitment', 'FontWeight', 'bold');
+xlim([0, numSteps-1]);
 a = findobj(gcf, 'type', 'axes');
 h = findobj(gcf, 'type', 'line');
 set(h, 'linewidth', 5);

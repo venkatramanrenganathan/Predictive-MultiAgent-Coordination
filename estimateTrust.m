@@ -19,6 +19,7 @@ function [trustVector] = estimateTrust(fnInput)
     trustRadius = fnInput.trustRadius;
     discountFactor = fnInput.discountFactor;
     predictionHorizon = fnInput.predictionHorizon;
+    iPredictedStates = fnInput.iPredictedStates;
     jthFriendPrediction = fnInput.currentPrediction;
     jthFriendOldPrediction = fnInput.previousPrediction;
 
@@ -36,6 +37,13 @@ function [trustVector] = estimateTrust(fnInput)
         else
             trustVector(t-1,1) = 0;
         end
+        % iMax = iPredictedStates(1, t-1) + trustRadius;
+        % iMin = iPredictedStates(1, t-1) - trustRadius;
+        % if(jthFriendPrediction(1,t-1) <= iMax && jthFriendPrediction(1,t-1) >= iMin)
+        %     trustVector(t-1,1) = trustVector(t-1,1)*1;
+        % else
+        %     trustVector(t-1,1) = 0;
+        % end
 
     end
     % Use average of all trust for last time step
